@@ -1,0 +1,13 @@
+apiVersion: v1
+name: prometheus
+version: 2.2.1
+description: A Helm chart for Prometheus monitoring
+keywords:
+  - monitoring
+sources:
+  - https://prometheus.io
+icon: https://prometheus.io/assets/prometheus_logo_grey.svg
+home: https://prometheus.io
+maintainers:
+  - name: Steve Wade
+    email: steven@stevenwade.co.uk

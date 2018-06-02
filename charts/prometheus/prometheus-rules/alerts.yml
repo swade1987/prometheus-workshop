@@ -1,0 +1,22 @@
+groups:
+
+- name: prometheus
+  rules:
+
+  ### Dead man's switch to test alerting works ###
+  - alert: DeadMansSwitch
+    expr: vector(1)
+    labels:
+      severity: none
+    annotations:
+      description: 'This is a Dead Mans switch meant to ensure that the entire alerting pipeline is functional.'
+      summary: 'Dead Mans Switch'
+
+  ### Fotia error count threshold breached ###
+  - alert: FotiaHighErrorCount
+    expr: ecount > 5
+    labels:
+      severity: warning
+    annotations:
+      description: 'Fotia error count breached the threshold of 5, current count is {{ $value }}.'
+      summary: 'Fotia High Error Count'

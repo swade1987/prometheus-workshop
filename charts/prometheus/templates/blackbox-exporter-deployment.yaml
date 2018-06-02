@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app_name: {{ .Values.blackbox.name }}
+    app_version: {{ .Values.blackbox.image.tag | quote }}
+    helm_chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  name: {{ .Values.blackbox.name }}
+spec:
+  replicas: {{ .Values.blackbox.replicaCount }}
+  selector:
+      matchLabels:
+        app_name: {{ .Values.blackbox.name }}
+  template:
+    metadata:
+      labels:
+        app_name: {{ .Values.blackbox.name }}
+        app_version: {{ .Values.blackbox.image.tag | quote }}
+    spec:
+      serviceAccountName: {{ .Values.blackbox.name }}
+      containers:
+        - name: {{ .Values.blackbox.name }}
+          image: {{ .Values.blackbox.image.repository }}/{{ .Values.blackbox.image.name }}:{{ .Values.blackbox.image.tag }}
+          imagePullPolicy: "{{ .Values.blackbox.image.pullPolicy }}"
+          ports:
+            - containerPort: 9115
+          args:
+            - --config.file=/etc/config/blackbox.yml
+            - --log.level=warn
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9115
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          resources:
+{{ toYaml .Values.blackbox.resources | indent 12 }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+{{- if .Values.blackbox.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.blackbox.nodeSelector | indent 8 }}
+{{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Values.blackbox.name }}

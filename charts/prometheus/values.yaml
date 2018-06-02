@@ -1,0 +1,211 @@
+#   ############################################################
+#   TOGGLE FOR RBAC
+#   ############################################################
+rbac:
+  enabled: true
+
+#   ############################################################
+#   ALERT MANAGER VALUES
+#   ############################################################
+alertmanager:
+  name: alertmanager
+
+  image:
+    repository: docker.io
+    name: prom/alertmanager
+    tag: v0.14.0
+    pullPolicy: IfNotPresent
+
+  extraArgs:
+    web.external-url: "http://alertmanager.example.com"
+
+  persistentVolume:
+    enabled: true
+    accessModes:
+      - ReadWriteMany
+    annotations:
+      helm.sh/resource-policy: keep
+    existingClaim: ""
+    mountPath: /data
+    size: 5Gi
+    storageClass: "kismatic"
+
+  podAnnotations: {}
+
+  replicaCount: 1
+
+  resources:
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+  service:
+    annotations: {}
+
+  slack:
+    apiUrl: "https://hooks.slack.com/services/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"
+    channel: "#alerts"   # Please include the '#' as well.
+
+  ingress:
+    hostname: alertmanager.example.com
+
+#   ############################################################
+#   BLACKBOX EXPORTER VALUES
+#   https://github.com/prometheus/blackbox_exporter
+#   For probing ingress resources
+#   ############################################################
+blackbox:
+  name: blackbox-exporter
+
+  image:
+    repository: docker.io
+    name: prom/blackbox-exporter
+    tag: v0.10.0
+    pullPolicy: IfNotPresent
+
+  nodeSelector: {}
+
+  replicaCount: 1
+
+  resources: {}
+
+#   ############################################################
+#   KUBE STATIC METRICS VALUES
+#   https://github.com/kubernetes/kube-state-metrics
+#   ############################################################
+kubeStateMetrics:
+  name: kube-state-metrics
+
+  image:
+    repository: quay.io
+    name: coreos/kube-state-metrics
+    tag: v1.3.0
+    pullPolicy: IfNotPresent
+
+  arguments:
+    v: 2
+
+  nodeSelector: {}
+
+  podAnnotations: {}
+
+  replicaCount: 1
+
+  resources:
+    limits:
+      cpu: 30m
+      memory: 200Mi
+    requests:
+      cpu: 30m
+      memory: 200Mi
+
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+
+#   ############################################################
+#   NODE EXPORTER VALUES
+#   ############################################################
+nodeExporter:
+  name: node-exporter
+
+  image:
+    repository: docker.io
+    name: prom/node-exporter
+    tag: v0.15.2
+    pullPolicy: IfNotPresent
+
+  collectors:
+    enabled: [conntrack,diskstats,entropy,filefd,filesystem,loadavg,mdadm,meminfo,netdev,netstat,stat,textfile,time,vmstat,interrupts]
+    # to disable default collectors
+    disabled: []
+
+  extraArgs: {}
+
+  nodeSelector: {}
+  podAnnotations: {}
+
+  tolerations:
+    - operator: "Exists"
+
+  # Quality of Service: The below settings set the QoS to 'Guaranteed' by setting the limits and requests to be identical.
+  # This is to make sure that under heavy load the kubelet will not evict the node exporter.
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 200m
+    limits:
+      memory: 50Mi
+      cpu: 200m
+
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+
+    hostPort: 9100
+
+#   ############################################################
+#   CONFIG MAP RELOAD VALUES
+#   Monitors ConfigMap changes and POSTs to a URL (Ref: https://github.com/jimmidyson/configmap-reload)
+#   ############################################################
+configmapReload:
+  name: configmap-reload
+
+  image:
+    repository: docker.io
+    name: jimmidyson/configmap-reload
+    tag: v0.1
+    pullPolicy: IfNotPresent
+
+  resources: {}
+
+#   ############################################################
+#   PROMETHEUS VALUES
+#   ############################################################
+server:
+  name: prometheus
+
+  image:
+    repository: docker.io
+    name: prom/prometheus
+    tag: v2.2.1
+    pullPolicy: IfNotPresent
+
+  extraArgs:
+    storage.tsdb.retention: 3d
+    web.external-url: "http://prometheus.example.com"
+    log.level: warn
+
+  alertmanager:
+    hostname: alertmanager
+    port: 80
+
+  persistentVolume:
+    enabled: true
+    accessModes:
+      - ReadWriteMany
+    annotations:
+      helm.sh/resource-policy: keep
+    existingClaim: ""
+    mountPath: /data
+    size: 5Gi
+    storageClass: "kismatic"
+
+  podAnnotations: {}
+  replicaCount: 1
+
+  service:
+    annotations: {}
+
+  terminationGracePeriodSeconds: 300 # 5 minutes
+
+  ingress:
+    hostname: prometheus.example.com
+
+## Prometheus server ConfigMap entries
+serverFiles:
+  alerts: ""
+  rules: ""

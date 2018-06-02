@@ -1,0 +1,18 @@
+{{- if .Values.rbac.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app_name: {{ .Values.kubeStateMetrics.name }}
+    app_version: {{ .Values.kubeStateMetrics.image.tag | quote }}
+    helm_chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  name: {{ .Values.kubeStateMetrics.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.kubeStateMetrics.name }}
+    namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.kubeStateMetrics.name }}
+{{- end }}
