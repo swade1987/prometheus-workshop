@@ -1,0 +1,70 @@
+kind: DaemonSet
+apiVersion: extensions/v1beta1
+metadata:
+  name: {{ .Values.nodeExporter.name }}
+  labels:
+    app_name: {{ .Values.nodeExporter.name }}
+    app_version: {{ .Values.nodeExporter.image.tag | quote }}
+    helm_chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  serviceAccountName: {{ .Values.nodeExporter.name }}
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app_name: {{ .Values.nodeExporter.name }}
+  template:
+    metadata:
+      labels:
+        app_name: {{ .Values.nodeExporter.name }}
+        node_exporter_version: {{ .Values.nodeExporter.image.tag | quote }}
+        helm_chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    spec:
+{{- if .Values.nodeExporter.tolerations }}
+      tolerations:
+{{ toYaml .Values.nodeExporter.tolerations | indent 8 }}
+    {{- end }}
+      containers:
+      - name: {{ .Values.nodeExporter.name }}
+        args:
+          - --path.procfs=/host/proc
+          - --path.sysfs=/host/sys
+        {{- range $key, $value := .Values.nodeExporter.collectors.enabled }}
+          - --collector.{{ . }}
+        {{- end }}
+        {{- range $key, $value := .Values.nodeExporter.collectors.disabled }}
+          - --no-collector.{{ . }}
+        {{- end }}
+        {{- range $key, $value := .Values.nodeExporter.extraArgs }}
+          - --{{ $key }}={{ $value }}
+        {{- end }}
+        ports:
+          - containerPort: 9100
+            hostPort: 9100
+            name: metrics
+        resources:
+{{ toYaml .Values.nodeExporter.resources | indent 10 }}
+        image: {{ .Values.nodeExporter.image.repository }}/{{ .Values.nodeExporter.image.name }}:{{ .Values.nodeExporter.image.tag }}
+        imagePullPolicy: "{{ .Values.nodeExporter.image.pullPolicy }}"
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly:  true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+      hostNetwork: true
+      hostPID: true
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: varlog
+        hostPath:
+          path: /var/log

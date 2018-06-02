@@ -1,0 +1,14 @@
+apiVersion: v1
+name: grafana
+version: 5.0.3
+description: A Helm chart for Grafana visualization tool for monitoring
+keywords:
+  - grafana
+  - dashboards
+  - metrics
+sources:
+  - https://grafana.com/
+home: https://grafana.com/
+maintainers:
+  - name: Steve Wade
+    email: steve@stevenwade.co.uk

@@ -1,0 +1,18 @@
+{{- if .Values.rbac.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app_name: {{ .Values.blackbox.name }}
+    app_version: {{ .Values.blackbox.image.tag | quote }}
+    helm_chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  name: {{ .Values.blackbox.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.blackbox.name }}
+    namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+{{- end }}
